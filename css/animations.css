@@ -14,35 +14,70 @@
 .anim-fadein{animation:fadeSlideIn 0.3s ease;}
 
 /* ── 3D Dice ── */
+/* ── 3D Real Dice ── */
 .dice-scene {
-  width: 70px;
-  height: 70px;
-  perspective: 300px;
+  width: 80px;
+  height: 80px;
+  perspective: 400px;
   margin: 0 auto;
 }
 
 .dice-cube {
-  width: 70px;
-  height: 70px;
+  width: 80px;
+  height: 80px;
   position: relative;
   transform-style: preserve-3d;
-  transform: rotateX(-15deg) rotateY(20deg); /* 👈 nice 3D angle at rest */
-  transition: transform 1s ease;
+  transform: rotateX(-20deg) rotateY(30deg);
+  transition: transform 0.4s ease;
 }
 
 .dice-cube .face {
   position: absolute;
-  width: 70px;
-  height: 70px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-  border: 2px solid var(--accent);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.2rem;
-  backface-visibility: visible;        /* 👈 changed to visible */
-  box-shadow: inset 0 0 15px #00b4d844;/* 👈 inner glow */
+  width: 80px;
+  height: 80px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 10px;
+  box-sizing: border-box;
+  box-shadow:
+    inset 2px 2px 6px rgba(255,255,255,0.9),
+    inset -2px -2px 6px rgba(0,0,0,0.15);
+  backface-visibility: hidden;
+}
+
+.face-1 { transform: rotateY(  0deg) translateZ(40px); }
+.face-2 { transform: rotateY( 90deg) translateZ(40px); }
+.face-3 { transform: rotateY(180deg) translateZ(40px); }
+.face-4 { transform: rotateY(-90deg) translateZ(40px); }
+.face-5 { transform: rotateX( 90deg) translateZ(40px); }
+.face-6 { transform: rotateX(-90deg) translateZ(40px); }
+
+.pip {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.pip-on {
+  background: #1a1a2e;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+@keyframes diceRoll3D {
+  0%   { transform: rotateX(0deg)    rotateY(0deg);   }
+  25%  { transform: rotateX(360deg)  rotateY(270deg); }
+  50%  { transform: rotateX(540deg)  rotateY(450deg); }
+  75%  { transform: rotateX(720deg)  rotateY(630deg); }
+  100% { transform: rotateX(900deg)  rotateY(810deg); }
+}
+
+.dice-cube.rolling {
+  animation: diceRoll3D 0.65s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
 }
 
 
