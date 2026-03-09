@@ -8,7 +8,56 @@
 @keyframes trophyBounce{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
 @keyframes fadeSlideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-.rolling{animation:diceRoll 0.5s ease;}
+
 .inv-usable{animation:invPulse 1.4s infinite;}
 .inv-converter{animation:convPulse 1s infinite;}
 .anim-fadein{animation:fadeSlideIn 0.3s ease;}
+
+/* ── 3D Dice ── */
+.dice-scene {
+  width: 70px;
+  height: 70px;
+  perspective: 300px;
+  margin: 0 auto;
+}
+
+.dice-cube {
+  width: 70px;
+  height: 70px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.1s;
+}
+
+.dice-cube .face {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  backface-visibility: hidden;
+}
+
+.dice-cube .face-1 { transform: rotateY(  0deg) translateZ(35px); }
+.dice-cube .face-2 { transform: rotateY( 90deg) translateZ(35px); }
+.dice-cube .face-3 { transform: rotateY(180deg) translateZ(35px); }
+.dice-cube .face-4 { transform: rotateY(-90deg) translateZ(35px); }
+.dice-cube .face-5 { transform: rotateX( 90deg) translateZ(35px); }
+.dice-cube .face-6 { transform: rotateX(-90deg) translateZ(35px); }
+
+@keyframes diceRoll3D {
+  0%   { transform: rotateX(0deg)   rotateY(0deg);   }
+  25%  { transform: rotateX(360deg) rotateY(180deg); }
+  50%  { transform: rotateX(540deg) rotateY(360deg); }
+  75%  { transform: rotateX(720deg) rotateY(540deg); }
+  100% { transform: rotateX(900deg) rotateY(720deg); }
+}
+
+.dice-cube.rolling {
+  animation: diceRoll3D 0.6s ease-out forwards;
+}
