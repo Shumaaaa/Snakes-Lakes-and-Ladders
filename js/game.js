@@ -48,7 +48,7 @@ window.addEventListener('load', () => {
   addLog('🗺️ The adventure begins! First to reach box 256 wins!', 'log-info');
 
   // CPU starts if first player is CPU
-  if (!players[0].isHuman) setTimeout(_doRoll, 12000);
+  if (!players[0].isHuman) setTimeout(_doRoll, 4000);
 });
 
 // ── Full UI refresh ──
@@ -74,7 +74,7 @@ function _doRoll() {
   // Refresh cards so converter lights up
   renderPlayerCards(players, currentTurn, pendingRoll);
   // Auto-execute after short delay (player can open converter first)
-  setTimeout(() => { if (pendingRoll !== null) _executeMove(pendingRoll); }, 40000);
+  setTimeout(() => { if (pendingRoll !== null) _executeMove(pendingRoll); }, 4000);
 }
 
 // ── Move execution ──
@@ -91,7 +91,7 @@ function _executeMove(roll) {
     busy = false;
     drawFullBoard(players);
     _refreshUI();
-    setTimeout(_advanceTurn, 6000);
+    setTimeout(_advanceTurn, 4000);
     return;
   }
 
@@ -104,7 +104,7 @@ function _executeMove(roll) {
     window._gamePlayers = players;
     drawFullBoard(players);
     _refreshUI();
-    setTimeout(() => _handleSpecial(result.special, roll, targetPos), 18000);
+    setTimeout(() => _handleSpecial(result.special, roll, targetPos), 4000);
   });
 }
 
@@ -163,7 +163,7 @@ function _afterSpecial(roll) {
   if (roll === 6 && p.state === 'normal' && !gameOver) {
     addLog(`🎲 ${p.name} rolled 6 — BONUS ROLL! 🔥`, 'log-gift');
     busy = false; _refreshUI();
-    if (!p.isHuman) setTimeout(_doRoll, 12000);
+    if (!p.isHuman) setTimeout(_doRoll, 4000);
     return;
   }
   busy = false;
@@ -175,7 +175,7 @@ function _advanceTurn() {
   currentTurn = (currentTurn + 1) % players.length;
   pendingRoll = null;
   _refreshUI();
-  if (!players[currentTurn].isHuman) setTimeout(_doRoll, 24000);
+  if (!players[currentTurn].isHuman) setTimeout(_doRoll, 4000);
 }
 
 // ── Item Usage ──
@@ -229,6 +229,6 @@ function _endGame(idx) {
     <div class="stat-box"><div class="stat-val">${m}:${String(s).padStart(2,'0')}</div><div class="stat-lbl">Time</div></div>
     <div class="stat-box"><div class="stat-val">${p.snakesHit}</div><div class="stat-lbl">🐍 Snakes</div></div>
     <div class="stat-box"><div class="stat-val">${p.laddersClimbed}</div><div class="stat-lbl">🪜 Ladders</div></div>`;
-  setTimeout(() => showWinModal(p, html), 9500);
+  setTimeout(() => showWinModal(p, html), 900);
   _refreshUI();
 }
