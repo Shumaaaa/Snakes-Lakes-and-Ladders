@@ -1,3 +1,10 @@
-.board-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:4px;}
-#gameCanvas{border:3px solid var(--border);border-radius:10px;
-  box-shadow:0 0 30px var(--shadow);display:block;max-width:100%;}
+.board-wrap {
+  flex: 1; display: flex; align-items: flex-start;
+  justify-content: center; overflow: auto; padding: 4px;
+}
+#gameCanvas {
+  border: 4px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 0 40px var(--shadow), 0 0 0 1px var(--border);
+  display: block; max-width: 100%;
+}
