@@ -107,14 +107,46 @@ function updateDiceUI(currentPlayer, busy, gameOver) {
   if (stat) stat.textContent = msgs[currentPlayer.state] || '';
 }
 
-function animateDice(roll) {
+// Build 3D dice once on load
+function initDice3D() {
   const el = document.getElementById('diceDisplay');
   if (!el) return;
-  el.textContent = DICE_FACE[roll];
-  el.classList.remove('rolling');
-  void el.offsetWidth;
-  el.classList.add('rolling');
+  el.innerHTML = `
+    <div class="dice-scene">
+      <div class="dice-cube" id="diceCube">
+        <div class="face face-1">⚀</div>
+        <div class="face face-2">⚁</div>
+        <div class="face face-3">⚂</div>
+        <div class="face face-4">⚃</div>
+        <div class="face face-5">⚄</div>
+        <div class="face face-6">⚅</div>
+      </div>
+    </div>`;
 }
+
+// Final rotation to show correct face
+const DICE_ROTATIONS = {
+  1: 'rotateY(0deg)   rotateX(0deg)',
+  2: 'rotateY(-90deg) rotateX(0deg)',
+  3: 'rotateY(180deg) rotateX(0deg)',
+  4: 'rotateY(90deg)  rotateX(0deg)',
+  5: 'rotateX(-90deg) rotateX(0deg)',
+  6: 'rotateX(90deg)  rotateX(0deg)',
+};
+
+function animateDice(roll) {
+  const cube = document.getElementById('diceCube');
+  if (!cube) return;
+  cube.classList.remove('rolling');
+  void cube.offsetWidth;
+  cube.classList.add('rolling');
+  // Land on correct face after animation
+  setTimeout(() => {
+    cube.classList.remove('rolling');
+    cube.style.transform = DICE_ROTATIONS[roll];
+  }, 600);
+}
+
 
 // ── Log ──
 function addLog(text, cls) {
