@@ -4,6 +4,23 @@
 let CELL_SIZE   = 42;
 let CANVAS_SIZE = BOARD_SIZE * CELL_SIZE;
 let _ctx        = null;
+let _animFrame = null;
+let _animTime  = 0;
+
+function startBoardAnimation(players) {
+  if (_animFrame) cancelAnimationFrame(_animFrame);
+  function loop(ts) {
+    _animTime = ts * 0.001; // seconds
+    drawFullBoard(players);
+    _animFrame = requestAnimationFrame(loop);
+  }
+  _animFrame = requestAnimationFrame(loop);
+}
+
+function stopBoardAnimation() {
+  if (_animFrame) cancelAnimationFrame(_animFrame);
+  _animFrame = null;
+}
 
 function cellCoords(n) {
   if (n < 1 || n > TOTAL_CELLS) return { x: CELL_SIZE/2, y: CELL_SIZE/2 };
