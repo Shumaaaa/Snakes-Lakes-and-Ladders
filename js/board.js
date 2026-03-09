@@ -280,6 +280,7 @@ function _drawPlayers(players) {
 window.addEventListener('resize', () => {
   if (window._gamePlayers && document.getElementById('gameCanvas')) {
     initCanvas();
-    drawFullBoard(window._gamePlayers);
+    stopBoardAnimation();
+    startBoardAnimation(window._gamePlayers); // 👈 restart loop on resize
   }
 });
