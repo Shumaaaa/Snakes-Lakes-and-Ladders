@@ -26,22 +26,25 @@
   height: 70px;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.1s;
+  transform: rotateX(-15deg) rotateY(20deg); /* 👈 nice 3D angle at rest */
+  transition: transform 1s ease;
 }
 
 .dice-cube .face {
   position: absolute;
   width: 70px;
   height: 70px;
-  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
   border: 2px solid var(--accent);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.2rem;
-  backface-visibility: hidden;
+  backface-visibility: visible;        /* 👈 changed to visible */
+  box-shadow: inset 0 0 15px #00b4d844;/* 👈 inner glow */
 }
+
 
 .dice-cube .face-1 { transform: rotateY(  0deg) translateZ(35px); }
 .dice-cube .face-2 { transform: rotateY( 90deg) translateZ(35px); }
