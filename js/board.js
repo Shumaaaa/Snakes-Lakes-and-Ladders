@@ -69,36 +69,37 @@ function drawFullBoard(players, highlights) {
 }
 
 function _drawCells(highlights) {
-  const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const rfb = BOARD_SIZE - 1 - r;
       const col = rfb % 2 === 0 ? c : BOARD_SIZE - 1 - c;
       const num = rfb * BOARD_SIZE + col + 1;
-      const x   = c * CELL_SIZE, y = r * CELL_SIZE;
+      const x = c * CELL_SIZE, y = r * CELL_SIZE;
 
-      // ⬛ Black cells with subtle blue tint alternating
-      let bg = (r + c) % 2 === 0 ? '#0a0a0a' : '#0d0d1a';
+      // Theme-aware checkerboard
+      let bg = isLight
+        ? ((r + c) % 2 === 0 ? '#dde8f5' : '#c8d8ee')
+        : ((r + c) % 2 === 0 ? '#0a0a0a' : '#0d0d1a');
       if (highlights[num]) bg = highlights[num];
 
       _ctx.fillStyle = bg;
       _ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
 
-      // Glowing border
-      _ctx.strokeStyle = '#00b4d833';
+      // Theme-aware grid border
+      _ctx.strokeStyle = isLight ? '#94a3b844' : '#00b4d833';
       _ctx.lineWidth = 0.8;
       _ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
 
-      // Cell number
-      _ctx.fillStyle  = '#ffffff18';
-      _ctx.font       = `bold ${Math.max(9, CELL_SIZE * 0.2)}px Segoe UI`;
-      _ctx.textAlign  = 'center';
+      // Theme-aware cell number
+      _ctx.fillStyle = isLight ? '#1a202c30' : '#ffffff18';
+      _ctx.font = `bold ${Math.max(9, CELL_SIZE * 0.2)}px Segoe UI`;
+      _ctx.textAlign = 'center';
       _ctx.textBaseline = 'top';
-      _ctx.fillText(num, x + CELL_SIZE/2, y + 2);
+      _ctx.fillText(num, x + CELL_SIZE / 2, y + 2);
     }
   }
 }
-
 
 function _drawTerrain() {
   const t = _animTime;
@@ -254,7 +255,7 @@ function _drawHospital() {
 }
 
 function _drawPlayers(players) {
-  const slots=[
+  const slots = [
     {ox:-CELL_SIZE*0.2, oy:-CELL_SIZE*0.2},
     {ox: CELL_SIZE*0.2, oy:-CELL_SIZE*0.2},
     {ox:-CELL_SIZE*0.2, oy: CELL_SIZE*0.2},
@@ -262,19 +263,39 @@ function _drawPlayers(players) {
   ];
   players.forEach((p, i) => {
     if (!p.pos) return;
-    const c  = cellCoords(p.pos);
+    const c = cellCoords(p.pos);
     const sl = slots[i % 4];
     const px = c.x + sl.ox, py = c.y + sl.oy;
+    const color = P_COLORS[i % 4];
+
     _ctx.save();
-    _ctx.shadowColor = P_COLORS[i%4]; _ctx.shadowBlur = 12;
-    _ctx.beginPath(); _ctx.arc(px, py, CELL_SIZE*0.2, 0, Math.PI*2);
-    _ctx.fillStyle = P_COLORS[i%4]+'cc'; _ctx.fill();
+
+    // ── Outer glow ring ──
+    _ctx.shadowColor = color;
+    _ctx.shadowBlur = 18;
+    _ctx.beginPath();
+    _ctx.arc(px, py, CELL_SIZE * 0.22, 0, Math.PI * 2);
+    _ctx.fillStyle = color;           // solid, fully opaque
+    _ctx.fill();
+
+    // ── White outline for contrast ──
+    _ctx.shadowBlur = 0;
+    _ctx.strokeStyle = '#ffffff';
+    _ctx.lineWidth = 1.5;
+    _ctx.stroke();
+
     _ctx.restore();
-    _ctx.font=`${CELL_SIZE*0.3}px serif`;
-    _ctx.textAlign='center'; _ctx.textBaseline='middle';
-    _ctx.fillText(P_AVATARS[i%4], px, py);
+
+    // ── Avatar on top ──
+    _ctx.save();
+    _ctx.font = `${CELL_SIZE * 0.3}px serif`;
+    _ctx.textAlign = 'center';
+    _ctx.textBaseline = 'middle';
+    _ctx.fillText(P_AVATARS[i % 4], px, py);
+    _ctx.restore();
   });
 }
+
 
 // Resize board when window resizes
 window.addEventListener('resize', () => {
