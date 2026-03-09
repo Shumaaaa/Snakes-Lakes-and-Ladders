@@ -48,7 +48,7 @@ window.addEventListener('load', () => {
   addLog('🗺️ The adventure begins! First to reach box 256 wins!', 'log-info');
 
   // CPU starts if first player is CPU
-  if (!players[0].isHuman) setTimeout(_doRoll, 4000);
+  if (!players[0].isHuman) setTimeout(_doRoll, 2000);
 });
 
 // ── Full UI refresh ──
@@ -91,7 +91,7 @@ function _executeMove(roll) {
     busy = false;
     drawFullBoard(players);
     _refreshUI();
-    setTimeout(_advanceTurn, 2000);
+    setTimeout(_advanceTurn, 1000);
     return;
   }
 
@@ -163,7 +163,7 @@ function _afterSpecial(roll) {
   if (roll === 6 && p.state === 'normal' && !gameOver) {
     addLog(`🎲 ${p.name} rolled 6 — BONUS ROLL! 🔥`, 'log-gift');
     busy = false; _refreshUI();
-    if (!p.isHuman) setTimeout(_doRoll, 2000);
+    if (!p.isHuman) setTimeout(_doRoll, 1000);
     return;
   }
   busy = false;
