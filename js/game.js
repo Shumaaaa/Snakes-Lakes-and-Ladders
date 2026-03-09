@@ -57,6 +57,7 @@ function _refreshUI() {
 
 // ── Dice ──
 function rollDice() {
+   startBGMusic();
   if (busy || gameOver || !players[currentTurn].isHuman) return;
   _doRoll();
 }
