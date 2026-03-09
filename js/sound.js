@@ -2,8 +2,17 @@
 //  sound.js — Web Audio sound effects + Background Music
 // ═══════════════════════════
 let _audioCtx = null;
-let _bgMusic = null;
+let _bgAudio = null;
 let _bgMusicEnabled = true;
+let _currentTrack = 0;
+
+const _bgTracks = [
+  'audio/Fearsome Tipsy Pirates (Pirates Epic trailer).mp3',
+  'audio/Hero Marvel Superhero Music.mp3',
+  'audio/Pirates Action Loop.mp3',
+  'audio/The First Tree of Middle Earth.mp3',
+  'audio/There be Pirates - The Quest.mp3'
+];
 
 function _ac() {
   if (!_audioCtx) {
@@ -12,130 +21,44 @@ function _ac() {
   return _audioCtx;
 }
 
-// ── Background Music (The Shire) ──
+// ── Background Music ──
 function startBGMusic() {
-  if (_bgMusic || !_bgMusicEnabled) return;
-  const ac = _ac(); if (!ac) return;
-
-  const master = ac.createGain();
-  master.gain.value = 0.12;
-  master.connect(ac.destination);
-  _bgMusic = { gain: master, stopped: false };
-
-  // 🎵 Real Shire melody — D major, read from sheet
-  const D4=293.66, E4=329.63, FS4=369.99, G4=392, A4=440,
-        D5=587.33, E5=659.25, FS5=739.99, G5=783.99, A5=880;
-
-  const melody = [
-    {f:D5,d:1.0},{f:E5,d:0.5},{f:FS5,d:0.5},
-    {f:A5,d:2.0},{f:G5,d:1.0},{f:FS5,d:1.0},
-    {f:E5,d:1.0},{f:G5,d:1.0},{f:FS5,d:1.0},{f:E5,d:1.0},
-    {f:D5,d:4.0},
-    {f:E5,d:1.0},{f:FS5,d:0.5},{f:G5,d:0.5},
-    {f:A5,d:2.0},{f:G5,d:1.0},{f:FS5,d:1.0},
-    {f:G5,d:1.0},{f:E5,d:1.0},{f:D5,d:2.0},
-    {f:D5,d:4.0}
-  ];
-
-  // 🎵 Harmony — one octave down
-  const harmony = [
-    {f:D4,d:2.0},{f:A4,d:2.0},
-    {f:G4,d:2.0},{f:FS4,d:2.0},
-    {f:E4,d:2.0},{f:A4,d:2.0},
-    {f:D4,d:4.0},
-    {f:D4,d:2.0},{f:A4,d:2.0},
-    {f:G4,d:2.0},{f:FS4,d:2.0},
-    {f:G4,d:2.0},{f:D4,d:2.0},
-    {f:D4,d:4.0}
-  ];
-
-  function scheduleTrack(notes, gainVal) {
-    if (_bgMusic.stopped) return;
-    const trackGain = ac.createGain();
-    trackGain.gain.value = gainVal;
-    trackGain.connect(master);
-
-    let t = ac.currentTime + 0.1;
-    const totalDuration = notes.reduce((s, n) => s + n.d, 0);
-
-    notes.forEach(({ f, d }) => {
-      const osc = ac.createOscillator();
-      const g   = ac.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = f;
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.6, t + 0.05);
-      g.gain.linearRampToValueAtTime(0.4, t + d - 0.08);
-      g.gain.linearRampToValueAtTime(0, t + d);
-      osc.connect(g);
-      g.connect(trackGain);
-      osc.start(t);
-      osc.stop(t + d);
-      t += d;
-    });
-
-    setTimeout(() => {
-      if (!_bgMusic.stopped) scheduleTrack(notes, gainVal);
-    }, totalDuration * 1000 - 200);
-  }
-
-  scheduleTrack(melody, 1.0);
-  scheduleTrack(harmony, 0.35);
-}
-
-
-  function scheduleTrack(notes, gainVal) {
-    if (_bgMusic.stopped) return;
-    const trackGain = ac.createGain();
-    trackGain.gain.value = gainVal;
-    trackGain.connect(master);
-
-    let t = ac.currentTime + 0.1;
-    const totalDuration = notes.reduce((s, n) => s + n.d, 0);
-
-    notes.forEach(({ f, d }) => {
-      const osc = ac.createOscillator();
-      const g   = ac.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = f;
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.6, t + 0.05);
-      g.gain.linearRampToValueAtTime(0.4, t + d - 0.05);
-      g.gain.linearRampToValueAtTime(0, t + d);
-      osc.connect(g);
-      g.connect(trackGain);
-      osc.start(t);
-      osc.stop(t + d);
-      t += d;
-    });
-
-    // Loop seamlessly
-    setTimeout(() => {
-      if (!_bgMusic.stopped) scheduleTrack(notes, gainVal);
-    }, totalDuration * 1000 - 200);
-  }
-
-  scheduleTrack(melody, 1.0);
-  scheduleTrack(harmony, 0.4);
+  if (_bgAudio || !_bgMusicEnabled) return;
+  _bgAudio = new Audio(_bgTracks[_currentTrack]);
+  _bgAudio.loop = false;
+  _bgAudio.volume = 0.3;
+  _bgAudio.play().catch(e => console.warn('Audio play failed:', e));
+  _bgAudio.addEventListener('ended', () => {
+    _bgAudio = null;
+    _currentTrack = (_currentTrack + 1) % _bgTracks.length;
+    startBGMusic();
+  });
 }
 
 function stopBGMusic() {
-  if (_bgMusic) {
-    _bgMusic.stopped = true;
-    try { _bgMusic.gain.gain.linearRampToValueAtTime(0, _ac().currentTime + 0.5); } catch(e) {}
-    _bgMusic = null;
+  if (_bgAudio) {
+    _bgAudio.pause();
+    _bgAudio.currentTime = 0;
+    _bgAudio = null;
   }
 }
 
 function toggleBGMusic() {
-  if (_bgMusic) { stopBGMusic(); _bgMusicEnabled = false; }
-  else { _bgMusicEnabled = true; startBGMusic(); }
+  if (_bgAudio) {
+    stopBGMusic();
+    _bgMusicEnabled = false;
+  } else {
+    _bgMusicEnabled = true;
+    startBGMusic();
+  }
 }
 
 // ── Sound Effects ──
 function playSound(type) {
   try {
     const ac = _ac(); if (!ac) return;
+    // Unlock AudioContext if suspended
+    if (ac.state === 'suspended') ac.resume();
     const o = ac.createOscillator(), g = ac.createGain();
     o.connect(g); g.connect(ac.destination);
     const n = ac.currentTime;
