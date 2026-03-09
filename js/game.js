@@ -42,6 +42,7 @@ window.addEventListener('load', () => {
   initCanvas();
   initDice3D(); 
   drawFullBoard(players);
+  startBoardAnimation(players);
   startTimer();
   _refreshUI();
   addLog('🗺️ The adventure begins! First to reach box 256 wins!', 'log-info');
