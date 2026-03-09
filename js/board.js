@@ -1,0 +1,194 @@
+// ═══════════════════════════
+//  board.js — Canvas + drawing. Board fills available space.
+// ═══════════════════════════
+let CELL_SIZE   = 42;
+let CANVAS_SIZE = BOARD_SIZE * CELL_SIZE;
+let _ctx        = null;
+
+function cellCoords(n) {
+  if (n < 1 || n > TOTAL_CELLS) return { x: CELL_SIZE/2, y: CELL_SIZE/2 };
+  const idx = n - 1;
+  const row = Math.floor(idx / BOARD_SIZE);
+  const col = idx % BOARD_SIZE;
+  const bx  = (row % 2 === 0) ? col : (BOARD_SIZE - 1 - col);
+  const by  = BOARD_SIZE - 1 - row;
+  return { x: bx * CELL_SIZE + CELL_SIZE/2, y: by * CELL_SIZE + CELL_SIZE/2 };
+}
+
+function cellRect(n) {
+  const c = cellCoords(n);
+  return { x: c.x - CELL_SIZE/2, y: c.y - CELL_SIZE/2, w: CELL_SIZE, h: CELL_SIZE };
+}
+
+function initCanvas() {
+  const canvas = document.getElementById('gameCanvas');
+  const wrap   = document.querySelector('.board-wrap');
+  // Use as much space as possible — full viewport minus side panel
+  const sidePanelW = 290;
+  const topBarH    = 50;
+  const pad        = 20;
+  const availW     = Math.max(300, window.innerWidth  - sidePanelW - pad * 2);
+  const availH     = Math.max(300, window.innerHeight - topBarH    - pad * 2);
+  const avail      = Math.min(availW, availH);
+  CELL_SIZE   = Math.max(28, Math.floor(avail / BOARD_SIZE));
+  CANVAS_SIZE = BOARD_SIZE * CELL_SIZE;
+  canvas.width = canvas.height = CANVAS_SIZE;
+  _ctx = canvas.getContext('2d');
+  return _ctx;
+}
+
+function getCtx() { return _ctx; }
+
+function drawFullBoard(players, highlights) {
+  if (!_ctx) return;
+  _ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  _drawCells(highlights || {});
+  _drawTerrain();
+  _drawSnakes();
+  _drawLadders();
+  _drawGifts();
+  _drawHospital();
+  if (players && players.length) _drawPlayers(players);
+}
+
+function _drawCells(highlights) {
+  const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const rfb = BOARD_SIZE - 1 - r;
+      const col = rfb % 2 === 0 ? c : BOARD_SIZE - 1 - c;
+      const num = rfb * BOARD_SIZE + col + 1;
+      const x   = c * CELL_SIZE, y = r * CELL_SIZE;
+      let bg = (r + c) % 2 === 0
+        ? (dark ? '#16213e' : '#f0f4f8')
+        : (dark ? '#0f3460' : '#e2e8f0');
+      if (highlights[num]) bg = highlights[num];
+      _ctx.fillStyle = bg;
+      _ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+      _ctx.strokeStyle = dark ? '#1a2a5e' : '#cbd5e0';
+      _ctx.lineWidth = 0.5;
+      _ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+      // Cell number
+      _ctx.fillStyle  = dark ? '#ffffff20' : '#00000020';
+      _ctx.font       = `bold ${Math.max(9, CELL_SIZE * 0.2)}px Segoe UI`;
+      _ctx.textAlign  = 'center';
+      _ctx.textBaseline = 'top';
+      _ctx.fillText(num, x + CELL_SIZE/2, y + 2);
+    }
+  }
+}
+
+function _drawTerrain() {
+  lakeCells.forEach(n => {
+    const r = cellRect(n);
+    _ctx.fillStyle = 'rgba(30,120,220,0.28)';
+    _ctx.fillRect(r.x, r.y, r.w, r.h);
+    if (CELL_SIZE > 30) {
+      _ctx.save(); _ctx.globalAlpha = 0.42;
+      _ctx.font = `${CELL_SIZE*0.32}px serif`;
+      _ctx.textAlign = 'center'; _ctx.textBaseline = 'middle';
+      _ctx.fillText('🌊', r.x+r.w*0.74, r.y+r.h*0.74);
+      _ctx.restore();
+    }
+  });
+  forestCells.forEach(n => {
+    const r = cellRect(n);
+    _ctx.fillStyle = 'rgba(30,150,60,0.24)';
+    _ctx.fillRect(r.x, r.y, r.w, r.h);
+    if (CELL_SIZE > 30) {
+      _ctx.save(); _ctx.globalAlpha = 0.42;
+      _ctx.font = `${CELL_SIZE*0.32}px serif`;
+      _ctx.textAlign = 'center'; _ctx.textBaseline = 'middle';
+      _ctx.fillText('🌲', r.x+r.w*0.74, r.y+r.h*0.74);
+      _ctx.restore();
+    }
+  });
+}
+
+function _drawSnakes() {
+  Object.entries(snakeMap).forEach(([h, t]) => {
+    const f = cellCoords(+h), to = cellCoords(+t);
+    _ctx.save();
+    const g = _ctx.createLinearGradient(f.x,f.y,to.x,to.y);
+    g.addColorStop(0,'#e94560dd'); g.addColorStop(1,'#8b0000aa');
+    _ctx.strokeStyle = g;
+    _ctx.lineWidth   = Math.max(3, CELL_SIZE*0.1);
+    _ctx.lineCap     = 'round';
+    _ctx.setLineDash([CELL_SIZE*0.28, CELL_SIZE*0.1]);
+    const mx=(f.x+to.x)/2+(f.y-to.y)*0.33, my=(f.y+to.y)/2-(f.x-to.x)*0.33;
+    _ctx.beginPath(); _ctx.moveTo(f.x,f.y); _ctx.quadraticCurveTo(mx,my,to.x,to.y); _ctx.stroke();
+    _ctx.setLineDash([]);
+    _ctx.font=`${CELL_SIZE*0.52}px serif`; _ctx.textAlign='center'; _ctx.textBaseline='middle';
+    _ctx.fillText('🐍',f.x,f.y);
+    _ctx.font=`${CELL_SIZE*0.32}px serif`; _ctx.fillText('💀',to.x,to.y);
+    _ctx.restore();
+  });
+}
+
+function _drawLadders() {
+  Object.entries(ladderMap).forEach(([b, t]) => {
+    const f=cellCoords(+b), to=cellCoords(+t);
+    const ang=Math.atan2(to.y-f.y,to.x-f.x)+Math.PI/2;
+    const off=CELL_SIZE*0.1, dx=Math.cos(ang)*off, dy=Math.sin(ang)*off;
+    _ctx.save();
+    _ctx.strokeStyle='#4ecca3cc'; _ctx.lineWidth=Math.max(2,CELL_SIZE*0.07); _ctx.lineCap='round';
+    _ctx.beginPath(); _ctx.moveTo(f.x-dx,f.y-dy); _ctx.lineTo(to.x-dx,to.y-dy); _ctx.stroke();
+    _ctx.beginPath(); _ctx.moveTo(f.x+dx,f.y+dy); _ctx.lineTo(to.x+dx,to.y+dy); _ctx.stroke();
+    const dist=Math.hypot(to.x-f.x,to.y-f.y), steps=Math.max(2,Math.floor(dist/(CELL_SIZE*0.55)));
+    _ctx.lineWidth=Math.max(1.5,CELL_SIZE*0.05); _ctx.strokeStyle='#4ecca355';
+    for(let i=1;i<steps;i++){const rx=f.x+(to.x-f.x)*i/steps,ry=f.y+(to.y-f.y)*i/steps;
+      _ctx.beginPath();_ctx.moveTo(rx-dx*1.5,ry-dy*1.5);_ctx.lineTo(rx+dx*1.5,ry+dy*1.5);_ctx.stroke();}
+    const mx=(f.x+to.x)/2, my=(f.y+to.y)/2;
+    _ctx.font=`${CELL_SIZE*0.5}px serif`; _ctx.textAlign='center'; _ctx.textBaseline='middle';
+    _ctx.fillText('🧗',mx,my);
+    _ctx.font=`${CELL_SIZE*0.36}px serif`; _ctx.fillText('🪜',f.x,f.y);
+    _ctx.restore();
+  });
+}
+
+function _drawGifts() {
+  Object.keys(giftCells).forEach(box => {
+    const c = cellCoords(+box);
+    _ctx.globalAlpha=0.9; _ctx.font=`${CELL_SIZE*0.46}px serif`;
+    _ctx.textAlign='center'; _ctx.textBaseline='middle';
+    _ctx.fillText('🎁',c.x,c.y); _ctx.globalAlpha=1;
+  });
+}
+
+function _drawHospital() {
+  const r=cellRect(HOSPITAL_BOX), c=cellCoords(HOSPITAL_BOX);
+  _ctx.fillStyle='rgba(255,50,50,0.18)'; _ctx.fillRect(r.x,r.y,r.w,r.h);
+  _ctx.font=`${CELL_SIZE*0.5}px serif`; _ctx.textAlign='center'; _ctx.textBaseline='middle';
+  _ctx.fillText('🏥',c.x,c.y);
+}
+
+function _drawPlayers(players) {
+  const slots=[
+    {ox:-CELL_SIZE*0.2, oy:-CELL_SIZE*0.2},
+    {ox: CELL_SIZE*0.2, oy:-CELL_SIZE*0.2},
+    {ox:-CELL_SIZE*0.2, oy: CELL_SIZE*0.2},
+    {ox: CELL_SIZE*0.2, oy: CELL_SIZE*0.2}
+  ];
+  players.forEach((p, i) => {
+    if (!p.pos) return;
+    const c  = cellCoords(p.pos);
+    const sl = slots[i % 4];
+    const px = c.x + sl.ox, py = c.y + sl.oy;
+    _ctx.save();
+    _ctx.shadowColor = P_COLORS[i%4]; _ctx.shadowBlur = 12;
+    _ctx.beginPath(); _ctx.arc(px, py, CELL_SIZE*0.2, 0, Math.PI*2);
+    _ctx.fillStyle = P_COLORS[i%4]+'cc'; _ctx.fill();
+    _ctx.restore();
+    _ctx.font=`${CELL_SIZE*0.3}px serif`;
+    _ctx.textAlign='center'; _ctx.textBaseline='middle';
+    _ctx.fillText(P_AVATARS[i%4], px, py);
+  });
+}
+
+// Resize board when window resizes
+window.addEventListener('resize', () => {
+  if (window._gamePlayers && document.getElementById('gameCanvas')) {
+    initCanvas();
+    drawFullBoard(window._gamePlayers);
+  }
+});

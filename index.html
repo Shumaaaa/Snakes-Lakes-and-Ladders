@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🐍 Adventure Snakes & Ladders</title>
+  <link rel="stylesheet" href="css/themes.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <style>
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+    .setup-card{background:var(--card);border:1px solid var(--border);border-radius:24px;
+      padding:40px 44px;max-width:480px;width:100%;text-align:center;
+      box-shadow:0 0 60px var(--shadow);}
+    .setup-logo{font-size:3.5rem;margin-bottom:10px;}
+    .setup-card h1{font-size:2rem;color:var(--accent);line-height:1.2;margin-bottom:6px;}
+    .setup-sub{color:var(--text3);font-size:0.83rem;margin-bottom:24px;}
+    .theme-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:26px;font-size:1.1rem;}
+    .toggle-switch{position:relative;width:48px;height:26px;display:inline-block;}
+    .toggle-switch input{opacity:0;width:0;height:0;}
+    .slider{position:absolute;inset:0;background:var(--bg3);border-radius:34px;cursor:pointer;transition:.3s;}
+    .slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;bottom:3px;
+      background:#fff;border-radius:50%;transition:.3s;}
+    input:checked+.slider{background:var(--gold);}
+    input:checked+.slider:before{transform:translateX(22px);}
+    .section{margin-bottom:20px;text-align:left;}
+    .section>label{font-size:.75rem;color:var(--text3);text-transform:uppercase;
+      letter-spacing:1px;display:block;margin-bottom:9px;}
+    .count-btns{display:flex;gap:10px;}
+    .count-btn{flex:1;padding:11px;background:var(--bg3);border:2px solid var(--border);
+      border-radius:9px;color:var(--text);font-size:1rem;cursor:pointer;transition:all .2s;}
+    .count-btn.active,.count-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+    #nameFields{display:flex;flex-direction:column;gap:9px;}
+    .name-row{display:flex;align-items:center;gap:10px;}
+    .name-row .p-icon{font-size:1.5rem;}
+    .name-row input{flex:1;padding:10px 13px;background:var(--bg3);border:1px solid var(--border);
+      border-radius:9px;color:var(--text);font-size:.92rem;outline:none;transition:border-color .2s;}
+    .name-row input:focus{border-color:var(--accent);}
+    .start-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;
+      border-radius:11px;font-size:1.05rem;cursor:pointer;font-weight:bold;letter-spacing:.5px;
+      margin-top:6px;transition:background .2s,transform .1s,box-shadow .2s;}
+    .start-btn:hover{background:#c73652;transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow);}
+    .hof-section{margin-top:22px;background:var(--bg3);border-radius:13px;padding:14px 16px;text-align:left;}
+    .hof-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+      font-size:.75rem;color:var(--gold);font-weight:bold;text-transform:uppercase;letter-spacing:1px;}
+    .clear-btn{background:transparent;border:1px solid var(--border);color:var(--text3);
+      padding:3px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;transition:all .2s;}
+    .clear-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .hof-list{display:flex;flex-direction:column;gap:5px;max-height:120px;overflow-y:auto;}
+    .hof-row{display:flex;align-items:center;gap:8px;font-size:.83rem;}
+    .hof-name{flex:1;color:var(--text);}
+    .hof-wins{color:var(--gold);font-weight:bold;}
+    .hof-empty{font-size:.78rem;color:var(--text3);}
+  </style>
+</head>
+<body>
+<div class="setup-card">
+  <div class="setup-logo">🐍🪜</div>
+  <h1>Adventure<br/>Snakes &amp; Ladders</h1>
+  <p class="setup-sub">256 boxes · Lakes · Forests · Bears · Gifts · Glory</p>
+
+  <div class="theme-row">
+    <span>🌙</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="themeCheck" onchange="toggleTheme()"/>
+      <span class="slider"></span>
+    </label>
+    <span>☀️</span>
+  </div>
+
+  <div class="section">
+    <label>Number of Human Players</label>
+    <div class="count-btns">
+      <button class="count-btn active" onclick="setCount(1)">1</button>
+      <button class="count-btn"        onclick="setCount(2)">2</button>
+      <button class="count-btn"        onclick="setCount(3)">3</button>
+      <button class="count-btn"        onclick="setCount(4)">4</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Player Names</label>
+    <div id="nameFields"></div>
+  </div>
+
+  <button class="start-btn" onclick="launchGame()">⚔️ Start Adventure!</button>
+
+  <div class="hof-section">
+    <div class="hof-header">
+      <span>🏆 Hall of Fame</span>
+      <button class="clear-btn" onclick="clearHOF()">Clear</button>
+    </div>
+    <div id="hofList" class="hof-list"></div>
+  </div>
+</div>
+
+<script>
+const AVATARS = ['🧑‍🚀','🧙','🧭','🧗'];
+const COLORS  = ['#4ecca3','#e94560','#f5a623','#a855f7'];
+const DNAMES  = ['Astronaut','Knight','Explorer','Climber'];
+let count = 1;
+
+function toggleTheme(){
+  const h = document.documentElement;
+  const light = h.getAttribute('data-theme') !== 'light';
+  h.setAttribute('data-theme', light ? 'light' : 'dark');
+  document.getElementById('themeCheck').checked = light;
+  localStorage.setItem('asl_theme', light ? 'light' : 'dark');
+}
+
+function setCount(n){
+  count = n;
+  document.querySelectorAll('.count-btn').forEach((b,i)=>b.classList.toggle('active',i+1===n));
+  renderNames(n);
+}
+
+function renderNames(n){
+  const c = document.getElementById('nameFields'); c.innerHTML='';
+  for(let i=0;i<n;i++){
+    c.innerHTML+=`<div class="name-row">
+      <span class="p-icon">${AVATARS[i]}</span>
+      <input type="text" id="pn${i}" maxlength="14"
+        placeholder="Player ${i+1}" value="${DNAMES[i]}"
+        style="border-color:${COLORS[i]}66"/>
+    </div>`;
+  }
+}
+
+function launchGame(){
+  const players=[];
+  for(let i=0;i<count;i++){
+    const v=document.getElementById('pn'+i);
+    players.push({name:(v&&v.value.trim())||`Player ${i+1}`,isHuman:true,index:i});
+  }
+  // Add CPU if only 1 human
+  if(players.length<2) players.push({name:'Buddy',isHuman:false,index:players.length});
+  localStorage.setItem('asl_players', JSON.stringify(players));
+  window.location.href='game.html';
+}
+
+function getHOF(){ try{return JSON.parse(localStorage.getItem('asl_hof')||'{}')}catch{return{}} }
+function clearHOF(){ localStorage.removeItem('asl_hof'); renderHOF(); }
+function renderHOF(){
+  const el=document.getElementById('hofList'); if(!el) return;
+  const r=getHOF();
+  const sorted=Object.entries(r).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'];
+  if(!sorted.length){el.innerHTML='<div class="hof-empty">No records yet — win a game!</div>';return;}
+  el.innerHTML=sorted.map((e,i)=>`<div class="hof-row">
+    <span>${medals[i]}</span>
+    <span class="hof-name">${e[0]}</span>
+    <span class="hof-wins">${e[1]}W</span>
+  </div>`).join('');
+}
+
+// Init
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('asl_theme');
+  if(saved==='light'){document.documentElement.setAttribute('data-theme','light');document.getElementById('themeCheck').checked=true;}
+  renderNames(1); renderHOF();
+});
+</script>
+</body>
+</html>

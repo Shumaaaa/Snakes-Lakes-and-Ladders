@@ -1,0 +1,15 @@
+:root {
+  --bg:#1a1a2e; --bg2:#16213e; --bg3:#0f3460;
+  --accent:#e94560; --green:#4ecca3; --gold:#f5a623; --purple:#a855f7;
+  --text:#eeeef0; --text2:#a0aec0; --text3:#555f7e;
+  --border:#0f3460; --shadow:#e9456044; --card:#16213e;
+}
+[data-theme="light"] {
+  --bg:#f0f4f8; --bg2:#ffffff; --bg3:#e2e8f0;
+  --accent:#e94560; --green:#2ecc9a; --gold:#c47f0a; --purple:#7c3aed;
+  --text:#1a202c; --text2:#4a5568; --text3:#a0aec0;
+  --border:#cbd5e0; --shadow:#00000022; --card:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',sans-serif;transition:background 0.3s,color 0.3s;}
