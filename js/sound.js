@@ -7,10 +7,11 @@ let _bgMusicEnabled = true;
 let _currentTrack = 0;
 
 const _bgTracks = [
+  'audio/Epic.mp3',
   'audio/Fearsome Tipsy Pirates (Pirates Epic trailer).mp3',
   'audio/Hero Marvel Superhero Music.mp3',
   'audio/Pirates Action Loop.mp3',
-  'audio/The First Tree of Middle Earth.mp3',
+  'audio/Cinematic Epic.mp3',
   'audio/There be Pirates - The Quest.mp3'
 ];
 
