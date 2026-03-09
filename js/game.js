@@ -40,6 +40,7 @@ window.addEventListener('load', () => {
 
   generateBoard();
   initCanvas();
+  initDice3D(); 
   drawFullBoard(players);
   startTimer();
   _refreshUI();
