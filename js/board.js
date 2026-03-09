@@ -76,17 +76,21 @@ function _drawCells(highlights) {
       const col = rfb % 2 === 0 ? c : BOARD_SIZE - 1 - c;
       const num = rfb * BOARD_SIZE + col + 1;
       const x   = c * CELL_SIZE, y = r * CELL_SIZE;
-      let bg = (r + c) % 2 === 0
-        ? (dark ? '#16213e' : '#f0f4f8')
-        : (dark ? '#0f3460' : '#e2e8f0');
+
+      // ⬛ Black cells with subtle blue tint alternating
+      let bg = (r + c) % 2 === 0 ? '#0a0a0a' : '#0d0d1a';
       if (highlights[num]) bg = highlights[num];
+
       _ctx.fillStyle = bg;
       _ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
-      _ctx.strokeStyle = dark ? '#1a2a5e' : '#cbd5e0';
-      _ctx.lineWidth = 0.5;
+
+      // Glowing border
+      _ctx.strokeStyle = '#00b4d833';
+      _ctx.lineWidth = 0.8;
       _ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+
       // Cell number
-      _ctx.fillStyle  = dark ? '#ffffff20' : '#00000020';
+      _ctx.fillStyle  = '#ffffff18';
       _ctx.font       = `bold ${Math.max(9, CELL_SIZE * 0.2)}px Segoe UI`;
       _ctx.textAlign  = 'center';
       _ctx.textBaseline = 'top';
@@ -95,49 +99,119 @@ function _drawCells(highlights) {
   }
 }
 
+
 function _drawTerrain() {
+  const t = _animTime;
+
+  // 🌊 Animated Lakes
   lakeCells.forEach(n => {
     const r = cellRect(n);
-    _ctx.fillStyle = 'rgba(30,120,220,0.28)';
+    const wave = Math.sin(t * 2 + n * 0.5) * 0.15 + 0.25;
+    _ctx.fillStyle = `rgba(0,180,216,${wave})`;
     _ctx.fillRect(r.x, r.y, r.w, r.h);
+
+    // Ripple lines
+    _ctx.save();
+    _ctx.strokeStyle = `rgba(144,224,239,${wave * 0.8})`;
+    _ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      const wy = r.y + r.h * (0.3 + i * 0.2) + Math.sin(t * 3 + i + n) * 2;
+      _ctx.beginPath();
+      _ctx.moveTo(r.x + 3, wy);
+      _ctx.bezierCurveTo(
+        r.x + r.w*0.3, wy - 2 + Math.sin(t*2+i)*2,
+        r.x + r.w*0.7, wy + 2 + Math.cos(t*2+i)*2,
+        r.x + r.w - 3, wy
+      );
+      _ctx.stroke();
+    }
+    _ctx.restore();
+
     if (CELL_SIZE > 30) {
-      _ctx.save(); _ctx.globalAlpha = 0.42;
+      _ctx.save(); _ctx.globalAlpha = 0.5;
       _ctx.font = `${CELL_SIZE*0.32}px serif`;
       _ctx.textAlign = 'center'; _ctx.textBaseline = 'middle';
       _ctx.fillText('🌊', r.x+r.w*0.74, r.y+r.h*0.74);
       _ctx.restore();
     }
   });
+
+  // 🌲 Animated Forests — shimmer effect
   forestCells.forEach(n => {
     const r = cellRect(n);
-    _ctx.fillStyle = 'rgba(30,150,60,0.24)';
+    const shimmer = Math.sin(t * 1.5 + n * 0.7) * 0.1 + 0.22;
+    _ctx.fillStyle = `rgba(30,150,60,${shimmer})`;
     _ctx.fillRect(r.x, r.y, r.w, r.h);
+
     if (CELL_SIZE > 30) {
-      _ctx.save(); _ctx.globalAlpha = 0.42;
+      _ctx.save();
+      // Sway the tree emoji
+      const sway = Math.sin(t * 2 + n) * 0.08;
+      _ctx.translate(r.x + r.w*0.74, r.y + r.h*0.74);
+      _ctx.rotate(sway);
+      _ctx.globalAlpha = 0.55;
       _ctx.font = `${CELL_SIZE*0.32}px serif`;
       _ctx.textAlign = 'center'; _ctx.textBaseline = 'middle';
-      _ctx.fillText('🌲', r.x+r.w*0.74, r.y+r.h*0.74);
+      _ctx.fillText('🌲', 0, 0);
       _ctx.restore();
     }
   });
 }
 
 function _drawSnakes() {
-  Object.entries(snakeMap).forEach(([h, t]) => {
-    const f = cellCoords(+h), to = cellCoords(+t);
+  const t = _animTime;
+  Object.entries(snakeMap).forEach(([h, tail]) => {
+    const f  = cellCoords(+h);
+    const to = cellCoords(+tail);
     _ctx.save();
-    const g = _ctx.createLinearGradient(f.x,f.y,to.x,to.y);
-    g.addColorStop(0,'#e94560dd'); g.addColorStop(1,'#8b0000aa');
-    _ctx.strokeStyle = g;
-    _ctx.lineWidth   = Math.max(3, CELL_SIZE*0.1);
+
+    // Draw wavy snake body
+    const segments = 40;
+    const grad = _ctx.createLinearGradient(f.x, f.y, to.x, to.y);
+    grad.addColorStop(0,  '#e94560ff');
+    grad.addColorStop(0.5,'#ff6b35cc');
+    grad.addColorStop(1,  '#8b0000aa');
+
+    _ctx.strokeStyle = grad;
+    _ctx.lineWidth   = Math.max(3, CELL_SIZE * 0.12);
     _ctx.lineCap     = 'round';
-    _ctx.setLineDash([CELL_SIZE*0.28, CELL_SIZE*0.1]);
-    const mx=(f.x+to.x)/2+(f.y-to.y)*0.33, my=(f.y+to.y)/2-(f.x-to.x)*0.33;
-    _ctx.beginPath(); _ctx.moveTo(f.x,f.y); _ctx.quadraticCurveTo(mx,my,to.x,to.y); _ctx.stroke();
+    _ctx.lineJoin    = 'round';
     _ctx.setLineDash([]);
-    _ctx.font=`${CELL_SIZE*0.52}px serif`; _ctx.textAlign='center'; _ctx.textBaseline='middle';
-    _ctx.fillText('🐍',f.x,f.y);
-    _ctx.font=`${CELL_SIZE*0.32}px serif`; _ctx.fillText('💀',to.x,to.y);
+
+    _ctx.beginPath();
+    for (let i = 0; i <= segments; i++) {
+      const pct = i / segments;
+      const bx  = f.x + (to.x - f.x) * pct;
+      const by  = f.y + (to.y - f.y) * pct;
+
+      // Perpendicular wave
+      const dx  = to.x - f.x, dy = to.y - f.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const px  = -dy / len, py = dx / len;
+
+      // Amplitude shrinks toward tail
+      const amp   = CELL_SIZE * 0.35 * (1 - pct * 0.6);
+      const wave  = Math.sin(pct * Math.PI * 4 - t * 4) * amp;
+
+      const wx = bx + px * wave;
+      const wy = by + py * wave;
+
+      if (i === 0) _ctx.moveTo(wx, wy);
+      else _ctx.lineTo(wx, wy);
+    }
+    _ctx.stroke();
+
+    // Snake head 🐍
+    _ctx.font = `${CELL_SIZE * 0.52}px serif`;
+    _ctx.textAlign = 'center'; _ctx.textBaseline = 'middle';
+    // Bobbing head
+    const bob = Math.sin(t * 3 + +h) * 2;
+    _ctx.fillText('🐍', f.x, f.y + bob);
+
+    // Tail marker
+    _ctx.font = `${CELL_SIZE * 0.32}px serif`;
+    _ctx.fillText('💀', to.x, to.y);
+
     _ctx.restore();
   });
 }
