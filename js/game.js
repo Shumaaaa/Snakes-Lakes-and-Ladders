@@ -74,7 +74,7 @@ function _doRoll() {
   // Refresh cards so converter lights up
   renderPlayerCards(players, currentTurn, pendingRoll);
   // Auto-execute after short delay (player can open converter first)
-  setTimeout(() => { if (pendingRoll !== null) _executeMove(pendingRoll); }, 4000);
+  setTimeout(() => { if (pendingRoll !== null) _executeMove(pendingRoll); }, 8000);
 }
 
 // ── Move execution ──
@@ -91,7 +91,7 @@ function _executeMove(roll) {
     busy = false;
     drawFullBoard(players);
     _refreshUI();
-    setTimeout(_advanceTurn, 4000);
+    setTimeout(_advanceTurn, 2000);
     return;
   }
 
@@ -104,7 +104,7 @@ function _executeMove(roll) {
     window._gamePlayers = players;
     drawFullBoard(players);
     _refreshUI();
-    setTimeout(() => _handleSpecial(result.special, roll, targetPos), 4000);
+    setTimeout(() => _handleSpecial(result.special, roll, targetPos), 8000);
   });
 }
 
@@ -163,7 +163,7 @@ function _afterSpecial(roll) {
   if (roll === 6 && p.state === 'normal' && !gameOver) {
     addLog(`🎲 ${p.name} rolled 6 — BONUS ROLL! 🔥`, 'log-gift');
     busy = false; _refreshUI();
-    if (!p.isHuman) setTimeout(_doRoll, 4000);
+    if (!p.isHuman) setTimeout(_doRoll, 2000);
     return;
   }
   busy = false;
