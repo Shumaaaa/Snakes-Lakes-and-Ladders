@@ -3,7 +3,7 @@
 // ═══════════════════════════
 const BOARD_SIZE  = 16;
 const TOTAL_CELLS = 256;
-const HOSPITAL_BOX = 14;
+const HOSPITAL_BOX = 64;
 
 const P_AVATARS = ['🧑‍🚀','🧙','🧭','🧗'];
 const P_COLORS  = ['#4ecca3','#e94560','#f5a623','#a855f7'];
