@@ -22,25 +22,67 @@ function startBGMusic() {
   master.connect(ac.destination);
   _bgMusic = { gain: master, stopped: false };
 
-  // 🎵 Shire melody — gentle flute-style sine waves
+  // 🎵 Real Shire melody — D major, read from sheet
+  const D4=293.66, E4=329.63, FS4=369.99, G4=392, A4=440,
+        D5=587.33, E5=659.25, FS5=739.99, G5=783.99, A5=880;
+
   const melody = [
-    {f:392,d:0.5},{f:440,d:0.5},{f:523,d:0.5},{f:494,d:0.5},
-    {f:440,d:0.5},{f:392,d:0.5},{f:349,d:0.75},{f:392,d:0.25},
-    {f:440,d:0.5},{f:494,d:0.5},{f:523,d:0.5},{f:587,d:0.5},
-    {f:523,d:0.5},{f:494,d:0.5},{f:440,d:1.0},
-    {f:392,d:0.5},{f:349,d:0.5},{f:392,d:0.5},{f:440,d:0.5},
-    {f:494,d:0.5},{f:523,d:0.5},{f:494,d:0.75},{f:440,d:0.25},
-    {f:392,d:0.5},{f:349,d:0.5},{f:330,d:0.5},{f:349,d:0.5},
-    {f:392,d:2.0}
+    {f:D5,d:1.0},{f:E5,d:0.5},{f:FS5,d:0.5},
+    {f:A5,d:2.0},{f:G5,d:1.0},{f:FS5,d:1.0},
+    {f:E5,d:1.0},{f:G5,d:1.0},{f:FS5,d:1.0},{f:E5,d:1.0},
+    {f:D5,d:4.0},
+    {f:E5,d:1.0},{f:FS5,d:0.5},{f:G5,d:0.5},
+    {f:A5,d:2.0},{f:G5,d:1.0},{f:FS5,d:1.0},
+    {f:G5,d:1.0},{f:E5,d:1.0},{f:D5,d:2.0},
+    {f:D5,d:4.0}
   ];
 
-  // 🎵 Gentle harmony — lower octave
+  // 🎵 Harmony — one octave down
   const harmony = [
-    {f:196,d:1.0},{f:262,d:1.0},{f:220,d:1.0},{f:196,d:1.0},
-    {f:220,d:1.0},{f:262,d:1.0},{f:247,d:1.0},{f:220,d:1.0},
-    {f:196,d:1.0},{f:175,d:1.0},{f:165,d:1.0},{f:175,d:1.0},
-    {f:196,d:2.0}
+    {f:D4,d:2.0},{f:A4,d:2.0},
+    {f:G4,d:2.0},{f:FS4,d:2.0},
+    {f:E4,d:2.0},{f:A4,d:2.0},
+    {f:D4,d:4.0},
+    {f:D4,d:2.0},{f:A4,d:2.0},
+    {f:G4,d:2.0},{f:FS4,d:2.0},
+    {f:G4,d:2.0},{f:D4,d:2.0},
+    {f:D4,d:4.0}
   ];
+
+  function scheduleTrack(notes, gainVal) {
+    if (_bgMusic.stopped) return;
+    const trackGain = ac.createGain();
+    trackGain.gain.value = gainVal;
+    trackGain.connect(master);
+
+    let t = ac.currentTime + 0.1;
+    const totalDuration = notes.reduce((s, n) => s + n.d, 0);
+
+    notes.forEach(({ f, d }) => {
+      const osc = ac.createOscillator();
+      const g   = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.6, t + 0.05);
+      g.gain.linearRampToValueAtTime(0.4, t + d - 0.08);
+      g.gain.linearRampToValueAtTime(0, t + d);
+      osc.connect(g);
+      g.connect(trackGain);
+      osc.start(t);
+      osc.stop(t + d);
+      t += d;
+    });
+
+    setTimeout(() => {
+      if (!_bgMusic.stopped) scheduleTrack(notes, gainVal);
+    }, totalDuration * 1000 - 200);
+  }
+
+  scheduleTrack(melody, 1.0);
+  scheduleTrack(harmony, 0.35);
+}
+
 
   function scheduleTrack(notes, gainVal) {
     if (_bgMusic.stopped) return;
