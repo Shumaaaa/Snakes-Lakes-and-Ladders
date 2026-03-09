@@ -111,27 +111,45 @@ function updateDiceUI(currentPlayer, busy, gameOver) {
 function initDice3D() {
   const el = document.getElementById('diceDisplay');
   if (!el) return;
+
+  // Real pip layouts per face
+  const pips = {
+    1: [5],
+    2: [1,9],
+    3: [1,5,9],
+    4: [1,3,7,9],
+    5: [1,3,5,7,9],
+    6: [1,3,4,6,7,9]
+  };
+
+  function makeFace(n) {
+    let dots = '';
+    for (let i = 1; i <= 9; i++) {
+      dots += `<span class="pip ${pips[n].includes(i) ? 'pip-on' : ''}"></span>`;
+    }
+    return `<div class="face face-${n}">${dots}</div>`;
+  }
+
   el.innerHTML = `
     <div class="dice-scene">
       <div class="dice-cube" id="diceCube">
-        <div class="face face-1">⚀</div>
-        <div class="face face-2">⚁</div>
-        <div class="face face-3">⚂</div>
-        <div class="face face-4">⚃</div>
-        <div class="face face-5">⚄</div>
-        <div class="face face-6">⚅</div>
+        ${makeFace(1)}
+        ${makeFace(2)}
+        ${makeFace(3)}
+        ${makeFace(4)}
+        ${makeFace(5)}
+        ${makeFace(6)}
       </div>
     </div>`;
 }
 
-// Final rotation to show correct face
 const DICE_ROTATIONS = {
-  1: 'rotateY(0deg)   rotateX(0deg)',
-  2: 'rotateY(-90deg) rotateX(0deg)',
-  3: 'rotateY(180deg) rotateX(0deg)',
-  4: 'rotateY(90deg)  rotateX(0deg)',
-  5: 'rotateX(-90deg) rotateX(0deg)',
-  6: 'rotateX(90deg)  rotateX(0deg)',
+  1: 'rotateX(0deg)   rotateY(0deg)',
+  2: 'rotateX(0deg)   rotateY(-90deg)',
+  3: 'rotateX(0deg)   rotateY(180deg)',
+  4: 'rotateX(0deg)   rotateY(90deg)',
+  5: 'rotateX(90deg)  rotateY(0deg)',
+  6: 'rotateX(-90deg) rotateY(0deg)',
 };
 
 function animateDice(roll) {
@@ -140,11 +158,10 @@ function animateDice(roll) {
   cube.classList.remove('rolling');
   void cube.offsetWidth;
   cube.classList.add('rolling');
-  // Land on correct face after animation
   setTimeout(() => {
     cube.classList.remove('rolling');
     cube.style.transform = DICE_ROTATIONS[roll];
-  }, 600);
+  }, 650);
 }
 
 
